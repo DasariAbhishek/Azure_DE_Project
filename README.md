@@ -1,21 +1,27 @@
-# 🚀 Enterprise Sales & Finance Data Platform on Azure
+# 🚀 Enterprise Sales, Finance & Supply Chain Lakehouse on Azure
 
 ## 📌 Project Overview
 
-This project demonstrates the design and implementation of an **enterprise-grade Azure Lakehouse architecture** simulating a real-world **Sales & Finance data platform (HP-like use case)**.
+This project demonstrates the design and implementation of an enterprise-grade Azure Lakehouse architecture inspired by Hewlett-Packard (HP).
 
-The solution handles **batch + streaming data ingestion**, implements **CDC (Change Data Capture)** and **SCD Type 2**, and delivers curated analytics-ready datasets using **Medallion Architecture (Bronze, Silver, Gold)**.
+It simulates a real-world data platform handling:
+
+* 🛒 Sales Data
+* 💰 Finance Data
+* 📦 Supply Chain Data
+
+The solution supports batch + real-time data ingestion, implements CDC (Change Data Capture) and SCD Type 2, and delivers analytics-ready datasets using the Medallion Architecture (Bronze, Silver, Gold).
 
 ---
 
 ## 🎯 Business Problem
 
-Enterprises like HP generate large volumes of **sales and financial transactions** from multiple systems (ERP, CRM, payment systems).
+Enterprises like HP generate massive volumes of data from multiple systems such as ERP, CRM, and payment platforms.
 
-Challenges:
+### Key Challenges:
 
-* Handling large-scale batch and real-time data
-* Tracking historical customer changes
+* Handling large-scale batch and streaming data
+* Tracking historical changes in dimensions
 * Ensuring data quality and governance
 * Optimizing cost and performance
 
@@ -23,50 +29,52 @@ Challenges:
 
 ## 🏗️ Architecture Overview
 
-### 🔹 High-Level Flow:
+### 🔹 High-Level Flow
 
 ```
 Batch Source (CSV/API)        Streaming Source (Event Hub)
          ↓                           ↓
-   Azure Data Factory         Azure Event Hub
+Azure Data Factory         Azure Event Hub
          ↓                           ↓
-          ----------- ADLS (Bronze Layer) ----------
+      ----------- ADLS Gen2 (Bronze Layer) -----------
                               ↓
                      Azure Databricks
-            (Delta Lake + Medallion Architecture)
-       Bronze → Silver → Gold + SCD Type 2 + CDC
+     (Delta Lake + Medallion + CDC + SCD Type 2)
                               ↓
-                Azure Synapse Serverless
+                Azure Synapse Serverless SQL
                               ↓
                        Power BI Dashboard
                               ↓
-                    CI/CD (Azure DevOps)
+                    Azure DevOps (CI/CD)
 ```
 
 ---
 
 ## 🧱 Tech Stack
 
-* **Data Ingestion:** Azure Data Factory, Event Hub
-* **Storage:** ADLS Gen2
-* **Processing:** Azure Databricks (PySpark, Delta Lake)
-* **Serving Layer:** Azure Synapse Serverless SQL
-* **Visualization:** Power BI
-* **Security:** Azure Key Vault, Managed Identity
-* **CI/CD:** Azure DevOps
+| Layer         | Technology                                       |
+| ------------- | ------------------------------------------------ |
+| Ingestion     | Azure Data Factory, Event Hub                    |
+| Storage       | ADLS Gen2                                        |
+| Processing    | Azure Databricks (PySpark, Delta Lake)           |
+| Query Layer   | Azure Synapse Serverless SQL                     |
+| Visualization | Power BI                                         |
+| Security      | Azure Key Vault, Managed Identity, Unity Catalog |
+| CI/CD         | Azure DevOps                                     |
 
 ---
 
-## 📂 Data Architecture (Medallion)
+## 📂 Medallion Architecture
 
-### 🥉 Bronze Layer (Raw)
+### 🥉 Bronze Layer (Raw Data)
 
-* Stores raw data as-is from source
+* Stores raw data as-is from source systems
 * Supports reprocessing and auditing
-* Includes metadata columns:
+* Schema-on-read approach
+* Metadata columns:
 
   * ingestion_timestamp
-  * source_file
+  * source_system
 
 ---
 
@@ -74,22 +82,25 @@ Batch Source (CSV/API)        Streaming Source (Event Hub)
 
 * Data cleansing (null handling, deduplication)
 * Schema enforcement
+* CDC logic implementation
 * Data quality checks:
 
   * Null validation
-  * Record count reconciliation
+  * Duplicate removal
   * Schema validation
 
 ---
 
 ### 🥇 Gold Layer (Business Ready)
 
-* Aggregated datasets for reporting
-* Examples:
+* Aggregated and analytics-ready datasets
 
-  * Total Revenue per Day
-  * Customer Lifetime Value
-  * Sales by Category
+#### Example Metrics:
+
+* 📊 Daily Revenue
+* 📦 Inventory Turnover
+* 💰 Customer Lifetime Value
+* 🚚 Order Fulfillment Time
 
 ---
 
@@ -98,23 +109,22 @@ Batch Source (CSV/API)        Streaming Source (Event Hub)
 ### ✅ Incremental Load
 
 * Implemented using watermark (timestamp column)
-* Reduces processing time and cost
+* Processes only new or updated records
 
 ---
 
 ### 🔄 Change Data Capture (CDC)
 
-* Detects inserts/updates from source systems
-* Enables efficient data updates
+* Detects inserts and updates from source systems
+* Avoids full data reload
 
 ---
 
 ### 🔁 Slowly Changing Dimension (SCD Type 2)
 
-* Applied on Customer Dimension
-* Tracks historical changes
+Applied on Customer and Product dimensions to track history.
 
-**Columns Used:**
+Columns Used:
 
 * start_date
 * end_date
@@ -122,44 +132,103 @@ Batch Source (CSV/API)        Streaming Source (Event Hub)
 
 ---
 
-### ⚡ Streaming Pipeline
+### ⚡ Real-Time Streaming
 
-* Real-time transaction ingestion using Event Hub
-* Processed via Databricks Autoloader
+* Event-based ingestion using Azure Event Hub
+* Processed using Databricks Structured Streaming / Autoloader
+
+---
+
+## 📊 Data Model
+
+### Fact Tables:
+
+* fact_transactions
+* fact_orders
+
+### Dimension Tables:
+
+* dim_customer (SCD Type 2)
+* dim_product
+* dim_supplier
 
 ---
 
 ## 🔐 Security & Governance
 
 * Secrets managed using Azure Key Vault
-* Access control using RBAC & Unity Catalog
-* Secure data access with Managed Identity
+* Access control using RBAC
+* Managed Identity for secure access
+* Unity Catalog for data governance
 
 ---
 
 ## 🔄 CI/CD Implementation
 
 * Git-based version control
-* Azure DevOps pipelines for deployment
+* Azure DevOps pipelines
 * Automated deployment of:
 
   * ADF pipelines
   * Databricks notebooks
-  * Infrastructure configs
+  * Infrastructure configurations
 
 ---
 
-## 📊 Data Model
+## 📁 Project Structure
 
-### Fact Table:
+```
+enterprise-lakehouse-hp/
+│
+├── data/
+├── adf/
+├── databricks/
+│   ├── bronze/
+│   ├── silver/
+│   ├── gold/
+│
+├── streaming/
+├── sql/
+├── cicd/
+├── docs/
+│   ├── architecture.png
+│   ├── challenges.md
+│   ├── debugging.md
+│
+└── README.md
+```
 
-* Transactions
+---
 
-### Dimension Tables:
+## ⚠️ Challenges Faced
 
-* Customer (SCD Type 2)
-* Product
-* Account
+* Handling late-arriving data
+* Managing duplicate records in streaming
+* Schema drift in incoming data
+* SCD merge conflicts
+* Event Hub throttling
+* Databricks cluster auto-termination
+
+---
+
+## 🛠️ Debugging & Issue Tracking
+
+All real-time issues, fixes, and learnings are documented in:
+
+```
+docs/challenges.md
+docs/debugging.md
+```
+
+---
+
+## 💡 Optimizations Implemented
+
+* Delta Lake OPTIMIZE and VACUUM
+* Z-Ordering for faster queries
+* Partitioning strategy (date-based)
+* Incremental processing
+* Cluster auto-scaling and auto-termination
 
 ---
 
@@ -172,68 +241,32 @@ Batch Source (CSV/API)        Streaming Source (Event Hub)
 
 ---
 
-## ⚠️ Challenges Faced
-
-* Handling late-arriving data
-* Managing duplicate records
-* Schema drift in streaming data
-* SCD merge conflicts
-* Databricks cluster auto-termination
-* Cost optimization for large datasets
-
----
-
-## 💡 Optimizations Implemented
-
-* Partitioning strategy for large datasets
-* Delta Lake OPTIMIZE and VACUUM
-* Z-ordering for faster queries
-* Auto-termination for Databricks clusters
-* Incremental data processing
-
----
-
-## 📌 Key Learnings
-
-* Designing scalable Lakehouse architectures
-* Handling real-time + batch hybrid pipelines
-* Implementing enterprise data governance
-* Optimizing cloud cost and performance
-
----
-
-## 📷 Architecture Diagram
-
-*(Add your diagram here)*
-
----
-
-## 📁 Project Structure
-
-```
-enterprise-finance-lakehouse/
-│
-├── adf/
-├── databricks/
-├── streaming/
-├── sql/
-├── cicd/
-├── docs/
-└── README.md
-```
-
----
-
 ## 🚀 Future Enhancements
 
 * Delta Live Tables (DLT)
 * Data Quality Framework
-* Monitoring with Azure Log Analytics
+* Monitoring using Azure Log Analytics
 * GenAI-based anomaly detection
 
 ---
 
 ## 👨‍💻 Author
 
-**Abhishek Dasari**
+Abhishek Dasari
 Azure Data Engineer | Databricks | Lakehouse Architect
+
+---
+
+## ⭐ How to Use This Project
+
+1. Deploy Azure resources (Free Tier optimized)
+2. Run batch + streaming pipelines
+3. Execute Databricks notebooks
+4. Query using Synapse
+5. Visualize in Power BI
+
+---
+
+## 📌 Interview Pitch
+
+“I built an enterprise-grade Azure Lakehouse simulating HP’s sales, finance, and supply chain systems, handling both batch and real-time data with CDC and SCD Type 2 using Databricks and Delta Lake.”
